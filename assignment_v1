@@ -1,0 +1,177 @@
+# we be pimpin this bad boy up with some colors
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+# showing the range of products function
+def selection_show(storeSelection):
+    for item in storeSelection:
+        print(f'Sword Name: {bcolors.BOLD}{bcolors.OKBLUE}{storeSelection[item]["name"]}{bcolors.ENDC}')
+        print("Price: " + str(storeSelection[item]["price"]))
+        print("Stock: " + str(storeSelection[item]["stock"]))
+        print("Code:  " + str(item))
+        print("")
+
+
+# ask quantity of items function
+def ask_quantity(user_input, storeSelection):
+    while True:
+        try:
+            quantity = int(input("Please enter the number of items that you would like to add: \n"))
+            if quantity > int(storeSelection[user_input]["stock"]):
+                print(f"{bcolors.WARNING}Unfortunately the store does not have the reserves. "
+                      f"Please ask for a lower amount.{bcolors.ENDC}")
+                continue
+            else:
+                break
+        except (ValueError, TypeError):
+            print("Please Enter a number")
+    return quantity
+
+
+# appends onlinebasket function as a list
+def add_onlineBasket(user_input, quantity, storeSelection, users_basket):
+    for x in range(quantity):
+        users_basket.append(storeSelection[user_input]["name"])
+        users_basket.append(storeSelection[user_input]["price"])
+        storeSelection[user_input]["stock"] -= 1
+    return users_basket
+
+
+# user_input function, checks if items in stock
+def ask_item(storeSelection, users_basket):
+    updated_users_basket = []   # Initialize as an empty list
+    exit_game = False   # Initially, assume the user does not want to exit the game
+    go_to_checkout = False  # Initially assume the user does not want to go to checkout
+    print("Options: Enter the code to add the sword to your basket \n"
+          "or press C to proceed to checkout\n"
+          "or press Q anytime to exit the game.\n")
+    while True:
+
+        # Check if the player made a choice to go to checkout; exit the loop if they did
+        if go_to_checkout == True:
+            break
+
+        # Otherwise, proceed to purchasing items
+        user_input = input("Enter a code: ").lower()
+
+        # If the code supplied is q, set the exit_game variable to True and exit the loop
+        if user_input == "q":
+            exit_game = True
+            break
+
+        # Player may decide to go to checkout after all instead of picking an item
+        elif user_input == 'c':
+            break
+
+        # If the code supplied is a value item and the item is still in stock, proceed as normal
+        elif user_input in storeSelection.keys() and int(storeSelection[user_input]["stock"]) > 0:
+            quantity = ask_quantity(user_input, storeSelection)
+            updated_users_basket = add_onlineBasket(user_input, quantity, storeSelection, users_basket)
+
+            # Ask if the user is done selecting items.
+            choice = input('[Y/N] Will that be everything?: ').lower()
+            if choice == 'y':
+                go_to_checkout = True
+
+        # Otherwise if the wrong item was provided or the item was not in stock and print a notification
+        else:
+            print(f"{bcolors.WARNING}The selected item is currently not available.\n{bcolors.ENDC}")
+
+    # Check what the exit variable is. If it is True (i.e the player wants to exit), return False as the first return;
+    # this will later exist as the variable continue_game, now with a value of False.
+    if exit_game:
+        return False, users_basket
+
+    # Otherwise, if the exit variable is False (i.e the player wants to continue the game), return True as the first
+    # return; this will later exist as the variable continue_game, now with a value of True. In addition, return the
+    # updated shopping cart
+    elif not exit_game:
+        return True, updated_users_basket
+
+
+# calculates the final price to pay
+def total_price_cal(users_basket):
+    basket_sum = 0
+    for x in users_basket:
+        if type(x) == int:
+            basket_sum += x
+    calculated_total_price = basket_sum - discount(users_basket, basket_sum)
+    return calculated_total_price
+
+
+# calculates if there is a discount
+def discount(users_basket, basket_sum):
+    if len(users_basket) < 6:
+        discounted = 0
+        print("You haven't bought enough items to warrant a discount.")
+    elif 20 >= len(users_basket) >= 6:
+        discounted = basket_sum * 0.2
+        print("Thank you for your purchase. A 20% discount has been applied.")
+    else:
+        discounted = basket_sum * 0.4
+        print("Thank you very much for your fine patronage. A 40% discount has been applied")
+    return discounted
+
+
+# provides final order details to make a payment
+def checkout(users_basket):
+    calculated_price = total_price_cal(users_basket)
+    print("You have selected the following items: ")
+    for item in set(users_basket):
+        if type(item) == str:
+            print(f'Item:\t{item}\nQuantity:\t{users_basket.count(item)}')
+    print(f"\nTotal price: {calculated_price}")
+
+    final_answer = input("Enter [Y] if you would like to finalize the payment.\n")
+    if final_answer.lower == "y":
+        print("\nThank you for choosing us.\nWe will see you next time.")
+    else:
+        print("We will see you next time.")
+
+
+def main(storeSelection, onlineBasket):
+    # simple simulation of an online store
+    print(f"{bcolors.HEADER}{bcolors.BOLD}Welcome to our premium Sword Store.\n{bcolors.ENDC}"
+          f"We have the finest of the blades.\n")
+
+    # Show the shop inventory
+    selection_show(storeSelection)
+
+    # Ask for the items or whether the player wants to exit. Retrieve two things: whether the player wants to continue
+    # the game (continue_game as True/False) and the updated shopping cart.
+    continue_game, updated_basket = ask_item(storeSelection, onlineBasket)
+
+    # If the player had indicated that they did not want to exit previously (i.e that they wanted to continue),
+    # proceed to checkout
+    if continue_game:
+        checkout(updated_basket)
+        print("Thanks for playing!")
+
+    # Otherwise, don't do to checkout please the player wanted to exit the game
+    else:
+        print("Aww, that's a shame...hope you change you mind soon and come back to play!")
+
+
+# store range of products
+example_storeSelection = {
+    "101": {"name": "Zweihänder", "price": 1200, "stock": 11},
+    "201": {"name": "Svärdstav", "price": 501, "stock": 2},
+    "301": {"name": "Jian", "price": 982, "stock": 5},
+    "401": {"name": "Longsword", "price": 458, "stock": 14},
+    "501": {"name": "Broadsword", "price": 825, "stock": 0},
+    "601": {"name": "Katana", "price": 357, "stock": 45},
+    "701": {"name": "Sharpening steel", "price": 50, "stock": 142},
+    "801": {"name": "Hanwei Sword Oil", "price": 14, "stock": 82}
+}
+example_onlineBasket = []  # predefining the basket
+
+
+if __name__ == '__main__':
+    main(example_storeSelection, example_onlineBasket)
