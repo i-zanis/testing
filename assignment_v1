@@ -1,4 +1,4 @@
-# we be pimpin this bad boy up with some colors
+#adding colors
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
