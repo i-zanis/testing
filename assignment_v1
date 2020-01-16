@@ -173,5 +173,6 @@ example_storeSelection = {
 example_onlineBasket = []  # predefining the basket
 
 
+
 if __name__ == '__main__':
     main(example_storeSelection, example_onlineBasket)
